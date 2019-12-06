@@ -1,19 +1,25 @@
-﻿using System.Collections.Generic;
-using Autofac.Features.Metadata;
+﻿using Autofac.Features.Metadata;
 using IDeliverable.Donuts.Events;
+using Orchard;
+using Orchard.Environment;
 using Orchard.Environment.Extensions;
+using Orchard.Mvc;
 using Orchard.UI.Resources;
+using System.Collections.Generic;
 
-namespace IDeliverable.Donuts.Services
-{
+namespace IDeliverable.Donuts.Services {
     [OrchardFeature("IDeliverable.Donuts.Resources")]
     [OrchardSuppressDependency("Orchard.UI.Resources.ResourceManager")]
     public class EventRaisingResourceManager : ResourceManager
     {
         private bool SuppressRequireEvents { get; set; }
 
-        public EventRaisingResourceManager(IEnumerable<Meta<IResourceManifestProvider>> resourceProviders, IResourceManagerEvents resourceManagerEvents)
-            : base(resourceProviders)
+        public EventRaisingResourceManager(
+            IEnumerable<Meta<IResourceManifestProvider>> resourceProviders, 
+            IResourceManagerEvents resourceManagerEvents,
+            Work<WorkContext> workContext,
+            Work<IHttpContextAccessor> httpContextAccessor)
+            : base(resourceProviders, workContext, httpContextAccessor)
         {
             mResourceManagerEvents = resourceManagerEvents;
         }
