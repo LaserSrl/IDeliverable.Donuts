@@ -5,6 +5,7 @@ using Orchard.Environment;
 using Orchard.Environment.Extensions;
 using Orchard.Mvc;
 using Orchard.UI.Resources;
+using System;
 using System.Collections.Generic;
 
 namespace IDeliverable.Donuts.Services {
@@ -17,8 +18,8 @@ namespace IDeliverable.Donuts.Services {
         public EventRaisingResourceManager(
             IEnumerable<Meta<IResourceManifestProvider>> resourceProviders, 
             IResourceManagerEvents resourceManagerEvents,
-            Work<WorkContext> workContext,
-            Work<IHttpContextAccessor> httpContextAccessor)
+            Lazy<IWorkContextAccessor> workContext,
+            Lazy<IHttpContextAccessor> httpContextAccessor)
             : base(resourceProviders, workContext, httpContextAccessor)
         {
             mResourceManagerEvents = resourceManagerEvents;
