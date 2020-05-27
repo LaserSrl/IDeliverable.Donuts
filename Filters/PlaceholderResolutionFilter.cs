@@ -1,4 +1,8 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
+using System.Net;
+using System.Security.Cryptography;
+using System.Text;
 using System.Web.Mvc;
 using System.Web.Routing;
 using IDeliverable.Donuts.Helpers;
@@ -54,9 +58,20 @@ namespace IDeliverable.Donuts.Filters
                     scope.WorkContext.CurrentTimeZone = currentTimeZone;
 
                     var html = filterContext.HttpContext.Request.ContentEncoding.GetString(stream.ToArray());
-                    html = scope.Resolve<IPlaceholderService>().ResolvePlaceholders(html);
 
+                    html = scope.Resolve<IPlaceholderService>().ResolvePlaceholders(html);
+                    // we might have changed the result html we are sending out, so we should be updating
+                    // the etag we are sending the browser.
+                    var etag = GetHash(html);
+                    _requestContext.HttpContext.Response.Headers["ETag"] = etag;
                     var buffer = filterContext.HttpContext.Request.ContentEncoding.GetBytes(html);
+                    // check whether the content has changed compared to what the client already claims to have
+                    var requestEtag = filterContext.HttpContext.Request.Headers["If-None-Match"];
+                    if (!string.IsNullOrWhiteSpace(requestEtag)) {
+                        if (string.Equals(requestEtag, etag, StringComparison.Ordinal)) {
+                            filterContext.Result = new HttpStatusCodeResult(HttpStatusCode.NotModified);
+                        }
+                    }
 
                     return new MemoryStream(buffer);
                 };
@@ -65,6 +80,25 @@ namespace IDeliverable.Donuts.Filters
 
         public void OnResultExecuting(ResultExecutingContext filterContext)
         {
+        }
+
+        private static string GetHash(string input) {
+
+            // Convert the input string to a byte array and compute the hash.
+            byte[] data = SHA1.Create().ComputeHash(Encoding.UTF8.GetBytes(input));
+
+            // Create a new Stringbuilder to collect the bytes
+            // and create a string.
+            var sBuilder = new StringBuilder();
+
+            // Loop through each byte of the hashed data 
+            // and format each one as a hexadecimal string.
+            for (int i = 0; i < data.Length; i++) {
+                sBuilder.Append(data[i].ToString("x2"));
+            }
+
+            // Return the hexadecimal string.
+            return sBuilder.ToString();
         }
     }
 }
