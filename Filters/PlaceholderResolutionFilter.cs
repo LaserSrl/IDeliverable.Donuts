@@ -9,6 +9,7 @@ using IDeliverable.Donuts.Helpers;
 using IDeliverable.Donuts.Services;
 using Orchard;
 using Orchard.Mvc.Filters;
+using Orchard.Themes;
 using Orchard.UI.Admin;
 
 namespace IDeliverable.Donuts.Filters
@@ -33,6 +34,11 @@ namespace IDeliverable.Donuts.Filters
 
             if (AdminFilter.IsApplied(filterContext.RequestContext))
                 return;
+
+            // only Donut frontend pages
+            if (!ThemeFilter.IsApplied(filterContext.RequestContext)) {
+                return;
+            }
 
             var workContext = mWorkContextAccessor.GetContext();
 
